@@ -1,0 +1,30 @@
+1 web application (jee/django/php chi 7aja f7al haka hhhh){
+	fetch api data
+	show graphs
+	show stocks
+	get user input
+	get user data lol
+	send user input to python scripts
+	receive results
+	show results (wow)
+	frontend lwan odkchi mchi ana lighndiro
+	}
+2 python scripts for prediction{
+	get user input
+	prediction hhhh
+	send user results
+	store user data
+	}
+python lib
+
+
+ARIMA (AutoRegressive Integrated Moving Average): A classic time series forecasting algorithm that takes into account the past values and the error terms.
+LSTM (Long Short-Term Memory): A type of recurrent neural network (RNN) that's great for capturing patterns in sequential data, like stock prices.
+Prophet: Developed by Facebook, this algorithm is designed for forecasting time series data with seasonal patterns.
+Now, for the Python libraries, you've got a few fookin' options:
+
+pandas: Essential for data wrangling and manipulation. You'll be usin' this to handle your stock data like a fookin' pro.
+scikit-learn: Your go-to for machine learning in Python. It's got implementations of various algorithms, including ARIMA and LSTM.
+TensorFlow or PyTorch: If you're goin' down the deep learning route with LSTM or other neural networks, these libraries got your back.
+Prophet: If you fancy givin' Prophet a spin, it's available as a Python package too.
+With these tools in your arsenal, you'll be well-equipped to tackle the wild world of gold stock prediction. Just remember, mate, the market's a fookin' beast, so don't go bettin' the farm on your predictions!
