@@ -26,7 +26,7 @@ def arima(name):
     get_csv(name)
     df = pd.read_csv(name + ".csv")
 
-    model = ARIMA(df['Close'], order=(4, 2, 0))
+    model = ARIMA(df['Close'], order=(4, 3, 0))
     model_fit = model.fit()
 
     forecast = model_fit.forecast(steps=10)

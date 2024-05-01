@@ -2,8 +2,8 @@ package ma.xproce.getrich.web;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import ma.xproce.getrich.dao.entities.User;
-import ma.xproce.getrich.service.UserManager;
+import ma.xproce.getrich.dao.entities.Member;
+import ma.xproce.getrich.service.MemberManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -20,19 +20,19 @@ import java.nio.file.Paths;
 import java.util.UUID;
 
 @Controller
-public class UserController {
+public class MemberController {
     @Value("${upload-dir}")
     private String uploadDir;
 
     @Autowired
-    UserManager userManager;
+    MemberManager memberManager;
     @GetMapping("/login")
         public String getLogin(){
         return "/login";
     }
     @PostMapping("/login")
         public String PostLogin(Model m, @RequestParam(name = "username") String username, @RequestParam(name = "password") String password, HttpServletRequest request){
-        boolean authenticated = userManager.checkLogin(username, password);
+        boolean authenticated = memberManager.checkLogin(username, password);
         if (authenticated) {
             HttpSession session = request.getSession();
             session.setAttribute("username", username);
@@ -64,13 +64,24 @@ public class UserController {
         String uniqueFilename = UUID.randomUUID().toString() + extension;
         Path uploadPath = Paths.get(uploadDir, uniqueFilename);
         Files.write(uploadPath, bytes);
-        User user = new User();
-        user.setUserame(username);
-        user.setPassword(password);
-        user.setProfile("/" + uniqueFilename);
-        userManager.addUser(user);
-        return "redirect:/";
+        Member member = new Member();
+        member.setUsername(username);
+        member.setPassword(password);
+        member.setProfile("/" + uniqueFilename);
+        memberManager.addMember(member);
+        return "redirect:/login";
     }
+    @GetMapping("/")
+    public String index(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null && session.getAttribute("loggedIn") != null && (boolean) session.getAttribute("loggedIn")){
+            System.out.println("logged "+ session.getAttribute("username"));
+            return "redirect:/index";
+        } else {
+            return "redirect:/login";
+        }
+    }
+
 
     @GetMapping("/logout")
     public String logout(HttpServletRequest request) {
