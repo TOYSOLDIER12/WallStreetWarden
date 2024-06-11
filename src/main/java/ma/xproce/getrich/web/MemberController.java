@@ -37,7 +37,7 @@ public class MemberController {
             HttpSession session = request.getSession();
             session.setAttribute("username", username);
             session.setAttribute("loggedIn", true);
-            return "redirect:/index";
+            return "redirect:/";
         } else {
             // Handle failed login attempt
             String message = "chkon nta ??";
@@ -71,16 +71,7 @@ public class MemberController {
         memberManager.addMember(member);
         return "redirect:/login";
     }
-    @GetMapping("/")
-    public String index(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session != null && session.getAttribute("loggedIn") != null && (boolean) session.getAttribute("loggedIn")){
-            System.out.println("logged "+ session.getAttribute("username"));
-            return "redirect:/index";
-        } else {
-            return "redirect:/login";
-        }
-    }
+
 
 
     @GetMapping("/logout")

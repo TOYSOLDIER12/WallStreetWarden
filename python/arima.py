@@ -7,6 +7,7 @@ import requests
 import datetime
 from statsmodels.tsa.arima.model import ARIMA
 from sklearn.metrics import mean_squared_error
+import json
 
 def get_csv(name):
     url = f'https://query1.finance.yahoo.com/v7/finance/download/{name}?period1=1681551861&period2=1713170661&interval=1d&events=history&includeAdjustedClose=true'
@@ -31,17 +32,18 @@ def arima(name):
 
     forecast = model_fit.forecast(steps=10)
 
-    plt.plot(df["Date"], df["Close"], label='Historical Data')
-    plt.plot(range(len(df), len(df)+10), forecast, color='red', linestyle='--', label='Predicted Prices')
-    plt.title(f"{name} Stock Price Prediction for Next 10 Days")
-    plt.xlabel("Days")
-    plt.ylabel("Price")
-    plt.legend()
-    plt.show()
+    forecast_dates = pd.date_range(start=df['Date'].iloc[-1], periods=11, closed='right').strftime('%Y-%m-%d').tolist()
 
+    result = {
+        'forecast': forecast.tolist(),
+        'forecast_dates': forecast_dates
+    }
+
+    return json.dumps(result)
 
 def main(stock_name):
-    arima(stock_name)
+    result = arima(stock_name)
+    print(result)
 
 if __name__ == "__main__":
     name = sys.argv[1]

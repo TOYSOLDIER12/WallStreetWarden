@@ -1,7 +1,6 @@
 package ma.xproce.getrich;
 
 import ma.xproce.getrich.dao.entities.Enterprise;
-import ma.xproce.getrich.dao.entities.Stock;
 import ma.xproce.getrich.dao.entities.Member;
 import ma.xproce.getrich.service.EnterpriseManager;
 import ma.xproce.getrich.service.MemberManager;
@@ -21,13 +20,20 @@ public class PfaApplication {
 	EnterpriseManager enterpriseManager;
 	public void run(String... args) throws Exception {
 
+		Member member = new Member();
+		Enterprise enterprise = new Enterprise();
+		enterprise.setStock(null);
+		enterprise.setName("tesla");
+		enterprise.addUser(member);
+		enterprise.addUser(member);
+		member.setPassword("1234");
+		member.setUsername("sidna");
+		member.setProfile("test.jpg");
+		member.setNumb_Of_Interactions(0);
+		member.addEnterprise(enterprise);
+		enterpriseManager.addEnterprise(enterprise);
+		memberManager.addMember(member);
 
-	Member member = new Member((long)1,"admin", "admin", "lord", "me.jpg", 1, null);
-	Enterprise enterprise = new Enterprise((long) 1,"tesla", (Stock)null, null);
-	enterprise.addUser(member);
-	member.addEnterprise(enterprise);
-	enterpriseManager.addEnterprise(enterprise);
-	memberManager.addMember(member);
 	}
 
 
