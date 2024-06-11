@@ -17,7 +17,6 @@ def get_csv(name):
         try:
             with open(f"{name}.csv", 'wb') as file:
                 file.write(response.content)
-            print(f"{name}.csv has been successfully downloaded.")
         except Exception as e:
             print(f"Failed to write {name}.csv: {e}")
     else:
@@ -32,7 +31,7 @@ def arima(name):
 
     forecast = model_fit.forecast(steps=10)
 
-    forecast_dates = pd.date_range(start=df['Date'].iloc[-1], periods=11, closed='right').strftime('%Y-%m-%d').tolist()
+    forecast_dates = pd.date_range(start=df['Date'].iloc[-1], periods=11).strftime('%Y-%m-%d').tolist()
 
     result = {
         'forecast': forecast.tolist(),
