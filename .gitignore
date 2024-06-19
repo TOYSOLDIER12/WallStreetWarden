@@ -18,7 +18,7 @@ target/
 *.iws
 *.iml
 *.ipr
-
+*.venv
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -28,6 +28,6 @@ target/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
-
+python/venv
 ### VS Code ###
 .vscode/

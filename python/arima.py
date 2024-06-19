@@ -9,13 +9,31 @@ from statsmodels.tsa.arima.model import ARIMA
 from sklearn.metrics import mean_squared_error
 import json
 
+
+def get_stock_symbol(name):
+
+    try:
+        with open("/home/toy/pfa/python/stocks.txt","r") as file:
+            lines = file.readlines()
+    except Exception as e:
+        print(f"Failed to write {name}.csv: {e}")
+    for line in lines:
+        if name.lower() in line.lower():
+            parts = line.split(":")
+            return parts[1].strip()
+
+
+
 def get_csv(name):
+
+
+
     url = f'https://query1.finance.yahoo.com/v7/finance/download/{name}?period1=1681551861&period2=1713170661&interval=1d&events=history&includeAdjustedClose=true'
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"}
     response = requests.get(url, headers = headers)
     if response.status_code == 200:
         try:
-            with open(f"{name}.csv", 'wb') as file:
+            with open(f"/home/toy/pfa/python/{name}.csv", 'wb') as file:
                 file.write(response.content)
         except Exception as e:
             print(f"Failed to write {name}.csv: {e}")
@@ -24,7 +42,8 @@ def get_csv(name):
 
 def arima(name):
     get_csv(name)
-    df = pd.read_csv(name + ".csv")
+
+    df = pd.read_csv("/home/toy/pfa/python/"+name + ".csv")
 
     model = ARIMA(df['Close'], order=(4, 3, 0))
     model_fit = model.fit()
@@ -41,7 +60,8 @@ def arima(name):
     return json.dumps(result)
 
 def main(stock_name):
-    result = arima(stock_name)
+    name = get_stock_symbol(stock_name)
+    result = arima(name)
     print(result)
 
 if __name__ == "__main__":
