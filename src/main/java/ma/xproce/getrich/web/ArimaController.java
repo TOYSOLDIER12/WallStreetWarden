@@ -23,7 +23,7 @@ public class ArimaController {
     @GetMapping("/forecast")
     public String getForecast(@RequestParam String stock) {
         logger.info("Received request for stock: " + stock);
-        //predictionManager.addPrediction(armaManager.getForecast(stock));
+        //  predictionManager.addPrediction(armaManager.getForecast(stock));
         return armaManager.getForecast(stock);
     }
 }
