@@ -26,8 +26,7 @@ public class StockService implements StockManager{
         Stock stockToUpdate = stockOptional.get();
         stockToUpdate.setEnterprise(stock.getEnterprise());
         stockToUpdate.setPrice(stock.getPrice());
-        stockToUpdate.setName(stock.getName());
-        stockToUpdate.setChart(stock.getChart());
+        stockToUpdate.setTickName(stock.getTickName());
         return stockRepository.save(stockToUpdate);
     }
 

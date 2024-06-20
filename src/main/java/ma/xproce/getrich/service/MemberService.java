@@ -57,7 +57,7 @@ public class MemberService implements MemberManager {
     }
 
     @Override
-public Collection<Member> getAllMembers() {
+    public Collection<Member> getAllMembers() {
         return memberRepository.findAll();
     }
 

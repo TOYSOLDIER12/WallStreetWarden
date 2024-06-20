@@ -1,7 +1,10 @@
 package ma.xproce.getrich.service;
 
 import ma.xproce.getrich.dao.entities.Enterprise;
+import ma.xproce.getrich.dao.entities.Stock;
 import ma.xproce.getrich.dao.repositories.EnterpriseRepository;
+import ma.xproce.getrich.dao.repositories.StockRepository;
+import ma.xproce.getrich.service.FileReader.FileReaderInt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +15,11 @@ import java.util.Optional;
 public class EnterpriseService implements EnterpriseManager {
     @Autowired
     EnterpriseRepository enterpriseRepository;
+    @Autowired
+    FileReaderInt fileReaderInt;
+    @Autowired
+    private StockRepository stockRepository;
+
     @Override
     public Enterprise addEnterprise(Enterprise enterprise) {
         return enterpriseRepository.save(enterprise);
@@ -27,7 +35,6 @@ public class EnterpriseService implements EnterpriseManager {
         Enterprise UpdatedEnterprise = expectedEntreprise.get();
         UpdatedEnterprise.setName(enterprise.getName());
         UpdatedEnterprise.setStock(enterprise.getStock());
-        UpdatedEnterprise.setMembers(enterprise.getMembers());
         return enterpriseRepository.save(UpdatedEnterprise);
     }
 
@@ -45,5 +52,25 @@ public class EnterpriseService implements EnterpriseManager {
     @Override
     public Optional<Enterprise> getEnterpriseById(long id) {
         return enterpriseRepository.findById(id);
+    }
+
+
+    @Override
+    public Enterprise getEnterpriseByName(String name) {return enterpriseRepository.findByName(name);}
+
+    @Override
+    public void populateEnterprise(){
+        if (enterpriseRepository.findAll().isEmpty()){
+           List<String> datas = fileReaderInt.readFile("python/stocks.txt");
+           for (String data : datas){
+               Enterprise enterprise = new Enterprise();
+               Stock stock = new Stock();
+               enterprise.setName(data.split(":")[0]);
+               stock.setTickName(data.split(":")[1]);
+               enterpriseRepository.save(enterprise);
+               stock.setEnterprise(enterprise);
+               stockRepository.save(stock);
+           }
+        }
     }
 }

@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from pandas.plotting import lag_plot
 import requests
 import datetime
+import time
 from statsmodels.tsa.arima.model import ARIMA
 from sklearn.metrics import mean_squared_error
 import json
@@ -22,13 +23,21 @@ def get_stock_symbol(name):
             parts = line.split(":")
             return parts[1].strip()
 
+def date_to_unix_timestamp(date):
+    return int(time.mktime(date.timetuple()))
 
 
 def get_csv(name):
 
+    # Get today's date and the date one year before
+    end_date = datetime.datetime.now()
+    start_date = end_date - datetime.timedelta(days=365)
+    
+    # Convert to UNIX timestamps
+    period1 = date_to_unix_timestamp(start_date)
+    period2 = date_to_unix_timestamp(end_date)
 
-
-    url = f'https://query1.finance.yahoo.com/v7/finance/download/{name}?period1=1681551861&period2=1713170661&interval=1d&events=history&includeAdjustedClose=true'
+    url = f'https://query1.finance.yahoo.com/v7/finance/download/{name}?period1={period1}&period2={period2}&interval=1d&events=history&includeAdjustedClose=true'
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"}
     response = requests.get(url, headers = headers)
     if response.status_code == 200:

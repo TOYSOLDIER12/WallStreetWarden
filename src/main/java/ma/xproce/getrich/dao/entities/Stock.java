@@ -15,10 +15,9 @@ public class Stock {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    private  String name;
+    private  String tickName;
     private float price;
+    private float previousPrice;
     @OneToOne
     private Enterprise enterprise;
-    @OneToOne (mappedBy = "stock", fetch = FetchType.EAGER)
-    private Chart chart;
 }

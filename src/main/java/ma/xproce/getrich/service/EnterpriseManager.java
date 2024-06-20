@@ -11,5 +11,7 @@ public interface EnterpriseManager {
     public boolean deleteEnterprise(Enterprise enterprise);
     public List<Enterprise> getAllEnterprises();
     public Optional<Enterprise> getEnterpriseById(long id);
+    public Enterprise getEnterpriseByName(String name);
+    public void populateEnterprise();
 
 }

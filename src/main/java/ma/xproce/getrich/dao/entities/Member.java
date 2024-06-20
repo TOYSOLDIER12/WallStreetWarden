@@ -1,11 +1,13 @@
 package ma.xproce.getrich.dao.entities;
 
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.UUID;
 
 @ToString
 @Getter
@@ -22,9 +24,7 @@ public class Member {
     private String username;
     private String profile;
     private int Numb_Of_Interactions;
-    @ManyToMany (fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Collection<Enterprise> enterprises = new ArrayList<>();
-    public boolean addEnterprise(Enterprise enterprise) {
-        return this.enterprises.add(enterprise);
-    }
+    private UUID token;
+    private String role;
+
 }
