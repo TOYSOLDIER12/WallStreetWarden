@@ -35,6 +35,9 @@ public class EnterpriseController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
             }
             List<Enterprise> enterprises = enterpriseManager.getAllEnterprises();
+            for (Enterprise enterprise : enterprises) {
+                System.out.println(enterprise.getName());
+            }
             return ResponseEntity.ok(enterprises);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
