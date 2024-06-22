@@ -7,7 +7,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Optional;
+
 @Service
+
 public class MemberService implements MemberManager {
     @Autowired
     MemberRepository memberRepository;
@@ -82,11 +84,7 @@ public class MemberService implements MemberManager {
 
     @Override
     public Optional<Member> findByUsername(String username) {
-        Optional<Member> existingUser = memberRepository.findByUsername(username);
-        if(existingUser.isPresent()){
-            return existingUser;
-        }
-        return null;
+        return memberRepository.findByUsername(username);
     }
 
 }

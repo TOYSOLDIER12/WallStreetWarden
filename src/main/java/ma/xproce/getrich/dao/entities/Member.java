@@ -15,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Member {
+public class Member  {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;

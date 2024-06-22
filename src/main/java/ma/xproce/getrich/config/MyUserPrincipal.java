@@ -14,18 +14,20 @@ import java.util.List;
 public class MyUserPrincipal implements UserDetails {
     private Member member;
     private List<GrantedAuthority> authorities;
+
+
     public MyUserPrincipal(Member member, List<GrantedAuthority> authorities) {
         this.member = member;
         this.authorities = authorities;
     }
     @Override
     public Collection<GrantedAuthority> getAuthorities() {
-        return List.of();
+         return authorities;
     }
 
     @Override
     public String getPassword() {
-        return "";
+        return member.getPassword();
     }
 
     @Override
@@ -35,21 +37,21 @@ public class MyUserPrincipal implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return false;
+         return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return false;
+        return true;
     }
 }

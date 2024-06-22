@@ -1,12 +1,10 @@
 package ma.xproce.getrich.config;
 
 import ma.xproce.getrich.dao.entities.Member;
-import ma.xproce.getrich.service.AuthenticationService;
 import ma.xproce.getrich.service.MemberManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -16,24 +14,31 @@ import java.util.List;
 
 @Service
 public class MyUserDetailsService implements UserDetailsService {
+    private final MemberManager memberManager;
+
     @Autowired
-    private MemberManager memberManager;
-    @Autowired
-    AuthenticationService customAuthenticationProvider;
+    public MyUserDetailsService(MemberManager memberManager) {
+        this.memberManager = memberManager;
+    }
 
 
 
+    public MyUserPrincipal loadUserByUsername(String username) throws UsernameNotFoundException {
 
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Member member = memberManager.findByUsername(username).get();
+        Member member = memberManager.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-        if (member == null) {
-            throw new UsernameNotFoundException("User not found: " + username);
-        }
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority(member.getRole()));
         return new MyUserPrincipal(member, authorities);
 
+    }
+    private List<GrantedAuthority> getAuthorities(List<String> roles) {
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        for (String role : roles) {
+            authorities.add(new SimpleGrantedAuthority(role));
+        }
+        return authorities;
     }
 
 }

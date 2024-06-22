@@ -8,7 +8,6 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -22,20 +21,28 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    JwtService jwtService;
-    @Autowired
-    UserDetailsService userDetailsService;
-    @Autowired
-    HandlerExceptionResolver handlerExceptionResolver;
+    private final JwtService jwtService;
+    private final MyUserDetailsService myUserDetailsService;
+    private final HandlerExceptionResolver handlerExceptionResolver;
+    private final AuthenticationProvider authenticationProvider;
+
 
     @Autowired
-    AuthenticationProvider authenticationProvider;
-
+    public SecurityConfig(
+            JwtService jwtService,
+            MyUserDetailsService myUserDetailsService,
+            HandlerExceptionResolver handlerExceptionResolver,
+            AuthenticationProvider authenticationProvider
+    ) {
+        this.jwtService = jwtService;
+        this.myUserDetailsService = myUserDetailsService;
+        this.handlerExceptionResolver = handlerExceptionResolver;
+        this.authenticationProvider = authenticationProvider;
+    }
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter(
     ) {
-        return new JwtAuthenticationFilter(jwtService, userDetailsService, handlerExceptionResolver);
+        return new JwtAuthenticationFilter(jwtService, myUserDetailsService, handlerExceptionResolver);
     }
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -51,13 +58,15 @@ public class SecurityConfig {
         return http.build();
     }
 
+
+
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowedMethods(List.of("GET","POST"));
-        configuration.setAllowedHeaders(List.of("Authorization","Content-Type","Accept"));
+        configuration.setAllowedHeaders(List.of("*"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
@@ -65,4 +74,8 @@ public class SecurityConfig {
 
         return source;
     }
+
+
+
+
 }

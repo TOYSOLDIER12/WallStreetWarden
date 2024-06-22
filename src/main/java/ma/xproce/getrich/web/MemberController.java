@@ -3,6 +3,8 @@ package ma.xproce.getrich.web;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import ma.xproce.getrich.config.AuthenticationResponse;
+import ma.xproce.getrich.config.MyUserPrincipal;
 import ma.xproce.getrich.dao.entities.Member;
 import ma.xproce.getrich.service.AuthenticationService;
 import ma.xproce.getrich.service.JwtService;
@@ -14,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -45,9 +46,9 @@ public class MemberController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> authenticate(@RequestBody MemberDto loginUserDto) {
-        Member authenticatedUser = authenticationService.authenticate(loginUserDto);
+        AuthenticationResponse authenticatedUser = authenticationService.authenticate(loginUserDto);
 
-        String jwtToken = jwtService.generateToken((UserDetails) authenticatedUser);
+        String jwtToken = jwtService.generateToken(new MyUserPrincipal(authenticatedUser.getMember(), null));
 
         LoginResponse loginResponse = new LoginResponse(jwtToken, jwtService.getExpirationTime());
 
@@ -71,7 +72,7 @@ public class MemberController {
                 Files.write(uploadPath, bytes);
                 registerUserDto.setProfile("/" + uniqueFilename);
             } catch (IOException e) {
-                // Handle the exception properly
+
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
             }
         }
