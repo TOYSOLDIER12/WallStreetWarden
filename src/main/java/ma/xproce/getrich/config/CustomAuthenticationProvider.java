@@ -8,13 +8,10 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-
+@Component
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
 
@@ -54,8 +51,4 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
     }
 
-    private List<GrantedAuthority> getAuthorities(Member member) {
-        // Implement authority mapping logic based on your application's requirements.
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
-    }
 }

@@ -17,8 +17,9 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.util.List;
 
-@Configuration
 @EnableWebSecurity
+@Configuration
+
 public class SecurityConfig {
 
     private final JwtService jwtService;
