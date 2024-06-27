@@ -3,7 +3,6 @@ package ma.xproce.getrich.web;
 import ma.xproce.getrich.config.MyUserDetailsService;
 import ma.xproce.getrich.config.MyUserPrincipal;
 import ma.xproce.getrich.dao.entities.Enterprise;
-import ma.xproce.getrich.dao.entities.Member;
 import ma.xproce.getrich.service.EnterpriseManager;
 import ma.xproce.getrich.service.JwtService;
 import ma.xproce.getrich.service.MemberManager;
@@ -33,23 +32,22 @@ public class EnterpriseController {
         System.out.println("start");
         try {
 
-            System.out.println("Authorization token: " + token);
+
 
             String username = jwtService.extractUsername(token);
 
 
-            Member member = memberManager.findByUsername(username);
+
 
             MyUserPrincipal userPrincipal = myUserDetailsService.loadUserByUsername(username);
 
-            System.out.println(userPrincipal.getUsername());
+
 
             if (username == null || !jwtService.isTokenValid(token,  myUserDetailsService.loadUserByUsername(username))) {
-                System.out.println("Invalid token");
+
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
             }
 
-            System.out.println("Token is valid");
 
             List<Enterprise> enterprises = enterpriseManager.getAllEnterprises();
 
