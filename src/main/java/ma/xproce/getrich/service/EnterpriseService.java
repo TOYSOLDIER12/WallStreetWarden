@@ -66,7 +66,7 @@ public class EnterpriseService implements EnterpriseManager {
                Enterprise enterprise = new Enterprise();
                Stock stock = new Stock();
                enterprise.setName(data.split(":")[0]);
-               stock.setTickName(data.split(":")[1]);
+               stock.setTickName(data.split(": ")[1]);
                enterpriseRepository.save(enterprise);
                stock.setEnterprise(enterprise);
                stockRepository.save(stock);

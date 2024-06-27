@@ -8,7 +8,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,8 +30,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         String username = authentication.getName();
         String password = authentication.getCredentials().toString();
 
-        Member member = memberManager.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        Member member = memberManager.findByUsername(username);
 
         if (password.equals(member.getPassword())) {
             // Authentication successful

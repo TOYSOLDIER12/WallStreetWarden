@@ -24,7 +24,6 @@ public class arimaService implements ArimaManager {
             while ((line = reader.readLine()) != null) {
                 result.append(line);
             }
-            logger.info("Python script output: " + result.toString());
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();

@@ -1,7 +1,9 @@
 package ma.xproce.getrich.web;
 
 import ma.xproce.getrich.config.MyUserDetailsService;
+import ma.xproce.getrich.config.MyUserPrincipal;
 import ma.xproce.getrich.dao.entities.Enterprise;
+import ma.xproce.getrich.dao.entities.Member;
 import ma.xproce.getrich.service.EnterpriseManager;
 import ma.xproce.getrich.service.JwtService;
 import ma.xproce.getrich.service.MemberManager;
@@ -27,19 +29,34 @@ public class EnterpriseController {
 
     @GetMapping("/enterprises")
     public ResponseEntity<List<Enterprise>> getEnterprises(@RequestHeader("Authorization") String token) {
+
+        System.out.println("start");
         try {
+
+            System.out.println("Authorization token: " + token);
+
             String username = jwtService.extractUsername(token);
 
 
-            if (username == null ||!jwtService.isTokenValid(token,  myUserDetailsService.loadUserByUsername(username))) {
+            Member member = memberManager.findByUsername(username);
+
+            MyUserPrincipal userPrincipal = myUserDetailsService.loadUserByUsername(username);
+
+            System.out.println(userPrincipal.getUsername());
+
+            if (username == null || !jwtService.isTokenValid(token,  myUserDetailsService.loadUserByUsername(username))) {
+                System.out.println("Invalid token");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
             }
+
+            System.out.println("Token is valid");
+
             List<Enterprise> enterprises = enterpriseManager.getAllEnterprises();
-            for (Enterprise enterprise : enterprises) {
-                System.out.println(enterprise.getName());
-            }
+
             return ResponseEntity.ok(enterprises);
+
         } catch (Exception e) {
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }

@@ -34,6 +34,7 @@ public class AuthenticationService {
                 user.setName(input.getName());
                 user.setUsername(input.getUsername());
                 user.setPassword(passwordEncoder.encode(input.getPassword()));
+                user.setRole("user");
 
         return userRepository.addMember(user);
     }
@@ -49,8 +50,7 @@ public class AuthenticationService {
 
             // If we reach this point, authentication was successful, hopefully :/
 
-            Member member = userRepository.findByUsername(input.getUsername())
-                    .orElseThrow();
+            Member member = userRepository.findByUsername(input.getUsername());
 
             MyUserPrincipal userDetails = (MyUserPrincipal) authentication.getPrincipal();
 

@@ -83,8 +83,10 @@ public class MemberService implements MemberManager {
 
 
     @Override
-    public Optional<Member> findByUsername(String username) {
-        return memberRepository.findByUsername(username);
+    public Member findByUsername(String username) {
+
+        Optional<Member> memberOptional = memberRepository.findByUsername(username);
+        return memberOptional.orElse(null);
     }
 
 }

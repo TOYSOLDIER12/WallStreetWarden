@@ -25,8 +25,7 @@ public class MyUserDetailsService implements UserDetailsService {
 
     public MyUserPrincipal loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        Member member = memberManager.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        Member member = memberManager.findByUsername(username);
 
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority(member.getRole()));

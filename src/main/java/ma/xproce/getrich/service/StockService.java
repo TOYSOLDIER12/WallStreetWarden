@@ -42,12 +42,18 @@ public class StockService implements StockManager{
     }
 
     @Override
-    public Optional<Stock> getStockById(long id) {
-        return stockRepository.findById(id);
+    public Stock getStockById(long id) {
+        Optional<Stock> stockOptional =  stockRepository.findById(id);
+        return stockOptional.orElse(null);
     }
 
     @Override
     public List<Stock> findAllStock() {
         return stockRepository.findAll();
+    }
+    @Override
+    public Stock getStockByTickName(String tick){
+        Optional<Stock> stockOptional =  stockRepository.findByTickName(tick);
+        return stockOptional.orElse(null);
     }
 }

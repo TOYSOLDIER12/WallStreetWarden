@@ -1,9 +1,10 @@
-package ma.xproce.getrich.dao.entities;
+package ma.xproce.getrich.service;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ma.xproce.getrich.dao.entities.Stock;
 
 import java.util.Date;
 
@@ -12,9 +13,13 @@ import java.util.Date;
 @Getter
 @Setter
 public class Prediction {
-    private long id;
     private Date firstStockDate;
     private String Forecast;
     private String forecastDate;
-    private Enterprise enterprise;
+    private Stock stock;
+
+    @Override
+    public String toString() {
+        return this.getForecast()+getForecastDate();
+    }
 }
