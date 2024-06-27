@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
-import java.util.Map;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -15,6 +14,7 @@ import java.util.Map;
 public class Prediction {
     private long id;
     private Date firstStockDate;
-    private Map<String,String> predictions;
+    private String Forecast;
+    private String forecastDate;
     private Enterprise enterprise;
 }
