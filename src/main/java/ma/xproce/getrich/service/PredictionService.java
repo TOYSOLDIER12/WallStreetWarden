@@ -16,7 +16,9 @@ public class PredictionService implements PredictionManager{
 
         Prediction p = new Prediction();
         p.setStock(stock);
+
         p.setForecast(forecast);
+        p.setForecastDate(forecast_Date);
 
         return p;
     }

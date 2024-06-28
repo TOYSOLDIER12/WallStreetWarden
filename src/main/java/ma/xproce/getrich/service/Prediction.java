@@ -20,6 +20,6 @@ public class Prediction {
 
     @Override
     public String toString() {
-        return this.getForecast()+getForecastDate();
+        return this.getForecast()+", "+getForecastDate();
     }
 }

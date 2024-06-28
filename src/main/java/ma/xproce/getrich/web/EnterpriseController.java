@@ -29,7 +29,6 @@ public class EnterpriseController {
     @GetMapping("/enterprises")
     public ResponseEntity<List<Enterprise>> getEnterprises(@RequestHeader("Authorization") String token) {
 
-        System.out.println("start");
         try {
 
 

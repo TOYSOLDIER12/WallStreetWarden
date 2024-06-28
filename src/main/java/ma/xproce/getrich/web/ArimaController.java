@@ -1,17 +1,18 @@
 package ma.xproce.getrich.web;
 
 import ma.xproce.getrich.dao.entities.Stock;
-import ma.xproce.getrich.service.ArimaManager;
-import ma.xproce.getrich.service.EnterpriseManager;
-import ma.xproce.getrich.service.PredictionManager;
-import ma.xproce.getrich.service.StockManager;
+import ma.xproce.getrich.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 @RestController
@@ -30,7 +31,7 @@ public class ArimaController {
     private PredictionManager predictionManager;
 
     @GetMapping("/forecast")
-    public String getForecast(@RequestParam String stock) {
+    public ResponseEntity<Map<String, Object>> getForecast(@RequestParam String stock) {
         logger.info("Received request for stock: " + stock);
         Stock s = stockManager.getStockByTickName(stock);
 
@@ -40,12 +41,18 @@ public class ArimaController {
 
         if (cachedPrediction != null) {
             logger.info("Returning cached prediction for stock: " + stock);
-            return (String) cachedPrediction.get().toString();
+            return ResponseEntity.ok((Map<String, Object>) cachedPrediction.get());
         }
 
-        String prediction = armaManager.getForecast(stock);
-        predictionManager.getForecast(prediction, s);
+        String forecast = armaManager.getForecast(stock);
+        Prediction prediction =  predictionManager.getForecast(forecast, s);
 
-        return prediction;
+        Map<String, Object> response = new HashMap<>();
+        response.put("values", Arrays.asList(prediction.getForecast().split(", ")));
+        response.put("dates", Arrays.asList(prediction.getForecastDate().split(", ")));
+
+        cache.put(s.getId(), response);
+
+        return ResponseEntity.ok(response);
     }
 }
