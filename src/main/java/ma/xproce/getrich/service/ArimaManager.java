@@ -1,5 +1,5 @@
 package ma.xproce.getrich.service;
 
 public interface ArimaManager {
-    public String getForecast( String stock);
+    public String getForecast( String stock, String steps);
 }

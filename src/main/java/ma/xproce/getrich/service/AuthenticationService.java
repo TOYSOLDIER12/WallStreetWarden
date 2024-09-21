@@ -41,6 +41,11 @@ public class AuthenticationService {
 
     public AuthenticationResponse authenticate(MemberDto input) {
         try {
+
+
+
+
+
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             input.getUsername(),
@@ -51,7 +56,6 @@ public class AuthenticationService {
             // If we reach this point, authentication was successful, hopefully :/
 
             Member member = userRepository.findByUsername(input.getUsername());
-
             MyUserPrincipal userDetails = (MyUserPrincipal) authentication.getPrincipal();
 
             String token = jwtService.generateToken(userDetails);
@@ -63,5 +67,11 @@ public class AuthenticationService {
             // You can throw a custom exception or return an error response
             throw new RuntimeException("Invalid username or password", e);
         }
+
+        catch (Exception e) {
+            // Handle any other unexpected exceptions
+            return AuthenticationResponse.error("An unexpected error occurred");
+        }
+
     }
 }

@@ -9,16 +9,19 @@ public class PredictionService implements PredictionManager{
     @Override
     @Cacheable(value = "forecasts", key = "#stock.id")
     public Prediction getForecast(String prediction, Stock stock) {
+
         String forecast = prediction.split("\\[")[1].split("\\]")[0];
-        String forecast_Date = prediction.split("forecast_dates\": ")[1];
-        forecast_Date = forecast_Date.split("\\[")[1].split("\\]")[0];
+
+
+        // Extract and clean the forecast dates
+        String forecastDate = prediction.split("forecast_dates\": ")[1];
+        forecastDate = forecastDate.split("\\[")[1].split("\\]")[0];
 
 
         Prediction p = new Prediction();
         p.setStock(stock);
-
         p.setForecast(forecast);
-        p.setForecastDate(forecast_Date);
+        p.setForecastDate(forecastDate);
 
         return p;
     }

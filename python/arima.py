@@ -12,6 +12,7 @@ import json
 import warnings
 from statsmodels.tsa.stattools import adfuller
 import itertools
+from stock_utils import get_csv
 
 warnings.filterwarnings("ignore")
 
@@ -30,23 +31,9 @@ def get_stock_symbol(name):
 def date_to_unix_timestamp(date):
     return int(time.mktime(date.timetuple()))
 
-def get_csv(name):
-    end_date = datetime.datetime.now()
-    start_date = end_date - datetime.timedelta(days=365)
-    period1 = date_to_unix_timestamp(start_date)
-    period2 = date_to_unix_timestamp(end_date)
+def get_csv_file(name):
+  get_csv(name)
 
-    url = f'https://query1.finance.yahoo.com/v7/finance/download/{name}?period1={period1}&period2={period2}&interval=1d&events=history&includeAdjustedClose=true'
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"}
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        try:
-            with open(f"/home/toy/pfa/python/{name}.csv", 'wb') as file:
-                file.write(response.content)
-        except Exception as e:
-            print(f"Failed to write {name}.csv: {e}")
-    else:
-        print(f"Failed to download {name}.csv: Status code {response.status_code}")
 
 def test_stationarity(timeseries):
     dftest = adfuller(timeseries, autolag='AIC')
@@ -55,66 +42,66 @@ def test_stationarity(timeseries):
         adf_output['Critical Value (%s)' % key] = value
     return adf_output
 
-def arima(name):
-    get_csv(name)
-    df = pd.read_csv("/home/toy/pfa/python/"+name + ".csv")
-    df['Date'] = pd.to_datetime(df['Date'])
-    df.set_index('Date', inplace=True)
+def arima(name, step):
+    try:
+        # Ensure the CSV is available or downloaded
+        csv_file = get_csv(name)
 
-    # Check stationarity and difference if necessary
-    result = test_stationarity(df['Close'])
-    d = 0
-    while result['p-value'] > 0.05 and d < 3:
-        df['Close'] = df['Close'].diff().dropna()
-        d += 1
-        result = test_stationarity(df['Close'])
-    
-    # Find the best ARIMA parameters
-    p = q = range(0, 5)
-    pdq = list(itertools.product(p, [d], q))
-    best_aic = float('inf')
-    best_pdq = None
-    for param in pdq:
-        try:
-            model = ARIMA(df['Close'], order=param)
-            model_fit = model.fit()
-            if model_fit.aic < best_aic:
-                best_aic = model_fit.aic
-                best_pdq = param
-        except:
-            continue
-    
-    # Fit the best model
-    model = ARIMA(df['Close'], order=best_pdq)
-    model_fit = model.fit()
+        # Proceed with ARIMA processing if the CSV file exists
+        df = pd.read_csv(csv_file)
+        df['Date'] = pd.to_datetime(df['Date'])
+        df.set_index('Date', inplace=True)
+        df = df.asfreq('D')
 
-    forecast = model_fit.forecast(steps=10)
+        df['Close'] = df['Close'].ffill()
 
-    # Restore the original scale if differencing was done
-    if d > 0:
-        forecast = df['Close'].iloc[-1] + forecast.cumsum()
+        model = ARIMA(df['Close'], order=(4, 1, 0))
+        model_fit = model.fit()
 
-    forecast_dates = pd.date_range(start=df.index[-1], periods=11).strftime('%Y-%m-%d').tolist()
+        # Forecast the next 'step' days
+        forecast = model_fit.forecast(steps=step)
 
-    result = {
-        'forecast': forecast.tolist(),
-        'forecast_dates': forecast_dates[1:]  # exclude the first date since it's the last date of training set
-    }
+        # Get forecast dates
+        last_date = df.index[-1]
+        forecast_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=step).strftime('%Y-%m-%d').tolist()
 
-    return json.dumps(result)
+        result = {
+            'forecast': forecast.tolist(),
+            'forecast_dates': forecast_dates
+        }
 
-def main(stock_name):
+        # Only return the result, no extra messages
+        return json.dumps(result)
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+
+# Main function
+def main(stock_name, step):
     name = get_stock_symbol(stock_name)
-    if name is None:
-        print(f"Stock symbol for {stock_name} not found.")
+    
+    # Handle case where stock symbol is not found
+    if not name:
+        print(f"Stock symbol for '{stock_name}' not found.")
         return
-    result = arima(name)
+    
+    # Convert step to integer and run ARIMA
+    try:
+        step = int(step)
+    except ValueError:
+        print("Error: 'step' must be an integer.")
+        return
+
+    result = arima(name, step)
     print(result)
 
+# Command-line execution
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        name = sys.argv[1]
-        main(name)
-    else:
-        print("Please provide a stock name as an argument.")
+    if len(sys.argv) != 3:
+        print("Usage: python arima.py <stock_name> <steps>")
+        sys.exit(1)
 
+    name = sys.argv[1]
+    step = sys.argv[2]
+    main(name, step)

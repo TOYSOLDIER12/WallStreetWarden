@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -29,30 +30,40 @@ public class ArimaController {
     private static final Logger logger = Logger.getLogger(ArimaController.class.getName());
     @Autowired
     private PredictionManager predictionManager;
+    private java.util.stream.Collectors Collectors;
 
     @GetMapping("/forecast")
-    public ResponseEntity<Map<String, Object>> getForecast(@RequestParam String stock) {
-        logger.info("Received request for stock: " + stock);
+    public ResponseEntity<Map<String, Object>> getForecast(@RequestParam String stock, @RequestParam String steps) {
+        logger.info("Received request for stock: " + stock +"with "+ steps +" steps");
         Stock s = stockManager.getStockByTickName(stock);
+
+        String cacheKey = s.getId() + "_" + steps;
 
         //caffeine cache
         Cache cache = cacheManager.getCache("forecasts");
-        Cache.ValueWrapper cachedPrediction = cache.get(s.getId());
+        Cache.ValueWrapper cachedPrediction = cache.get(cacheKey);
 
         if (cachedPrediction != null) {
-            logger.info("Returning cached prediction for stock: " + stock);
+            logger.info("Returning cached prediction for stock: " + stock +"with "+ steps +" steps");
             return ResponseEntity.ok((Map<String, Object>) cachedPrediction.get());
         }
 
-        String forecast = armaManager.getForecast(stock);
-        Prediction prediction =  predictionManager.getForecast(forecast, s);
+            String forecast = armaManager.getForecast(stock, steps);
+            Prediction prediction =  predictionManager.getForecast(forecast, s);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("values", Arrays.asList(prediction.getForecast().split(", ")));
-        response.put("dates", Arrays.asList(prediction.getForecastDate().split(", ")));
+            Map<String, Object> response = new HashMap<>();
 
-        cache.put(s.getId(), response);
+            List<Double> forecastValues = Arrays.stream(prediction.getForecast().split(", "))
+                .map(Double::parseDouble) // Convert to Double
+                .collect(Collectors.toList());
 
-        return ResponseEntity.ok(response);
+            List<String> forecastDates = Arrays.asList(prediction.getForecastDate().replaceAll("\"", "").split(", "));
+
+            response.put("values", forecastValues);
+            response.put("dates", forecastDates);
+
+            cache.put(cacheKey, response);
+
+            return ResponseEntity.ok(response);
     }
 }

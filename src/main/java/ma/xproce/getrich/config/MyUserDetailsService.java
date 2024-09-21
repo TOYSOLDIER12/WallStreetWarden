@@ -27,6 +27,10 @@ public class MyUserDetailsService implements UserDetailsService {
 
         Member member = memberManager.findByUsername(username);
 
+        if (member == null) {
+            throw new UsernameNotFoundException("User not found");
+        }
+
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority(member.getRole()));
         return new MyUserPrincipal(member, authorities);

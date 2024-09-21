@@ -46,7 +46,15 @@ public class MemberController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> authenticate(@RequestBody MemberDto loginUserDto) {
+
+
         AuthenticationResponse authenticatedUser = authenticationService.authenticate(loginUserDto);
+
+        if (!authenticatedUser.isSuccess()) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new LoginResponse("Authentication failed", 0)); // You can also provide a meaningful response
+        }
 
         String jwtToken = jwtService.generateToken(new MyUserPrincipal(authenticatedUser.getMember(), null));
 
@@ -63,6 +71,7 @@ public class MemberController {
     public ResponseEntity<Member> register(@RequestPart("user") @Valid MemberDtoADD registerUserDto,
                                            @RequestPart(value = "profilePicture", required = false) MultipartFile profile) {
         if (profile != null) {
+            System.out.println("Received profile picture: " + profile.getOriginalFilename());
             try {
                 byte[] bytes = profile.getBytes();
                 String originalFilename = profile.getOriginalFilename();
@@ -75,6 +84,10 @@ public class MemberController {
 
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
             }
+        }
+        else {
+
+            System.out.println("No profile picture uploaded");
         }
         registerUserDto.setToken(UUID.randomUUID());
         Member registeredUser = authenticationService.signup(registerUserDto);

@@ -11,19 +11,24 @@ public class arimaService implements ArimaManager {
 
     private static final Logger logger = Logger.getLogger(arimaService.class.getName());
 
-    public String getForecast( String stock){
+    public String getForecast( String stock, String steps){
 
         try {
             // Command to activate the virtual environment and run the Python script
-            String[] cmd = {"/bin/bash", "-c", "source python/venv/bin/activate && python3 python/arima.py " + stock};
+            String[] cmd = {"/bin/bash", "-c", "source python/venv/bin/activate && python3 python/arima.py " + stock+" "+ steps};
             ProcessBuilder processBuilder = new ProcessBuilder(cmd);
             Process process = processBuilder.start();
+
+
+
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             StringBuilder result = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
                 result.append(line);
             }
+
+
             return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
