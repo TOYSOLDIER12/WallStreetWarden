@@ -11,7 +11,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from datetime import datetime
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit,
-    QPushButton, QFileDialog, QFormLayout, QMessageBox, QComboBox
+    QPushButton, QFileDialog, QFormLayout, QMessageBox, QComboBox,QSizePolicy,QLayout,
+    QDesktopWidget
 )
 
 
@@ -85,11 +86,19 @@ class SignUpWindow(QWidget):
 
             if response.status_code == 200:
                 QMessageBox.information(self, "Success", "Sign-up successful!")
+                self.open_login_window()
             else:
                 QMessageBox.critical(self, "Error", f"Sign-up failed! Status Code: {response.status_code}\n{response.text}")
 
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
+    
+    def open_login_window(self):
+        self.login_window = LoginWindow()
+        self.login_window.show()
+        self.close()  # Close signup window
+
+
 
 
 class LoginWindow(QWidget):
@@ -163,18 +172,25 @@ class LoginWindow(QWidget):
         self.hide()
         self.main_menu = MainMenu(token)  # Pass the token to MainMenu
         self.main_menu.show()
-
+    
+    
 
 
 class MainMenu(QWidget):
     def __init__(self, token):
         super().__init__()
         self.token = token  # Save the token for authenticated requests
+        
+        self.profile_data = self.fetch_user_profile()  # Fetch profile data
+        self.username = self.profile_data.get('username', 'User') if self.profile_data else "User"
+
+        
 
         # Load stock names and tickers from the text file
         self.stock_dict = {}
         self.load_stocks()
         self.canvas = None
+        self.setMinimumSize(800, 600)
 
         self.initUI()
 
@@ -189,8 +205,15 @@ class MainMenu(QWidget):
         self.company_names = list(self.stock_dict.keys())  # Store company names for search
 
     def initUI(self):
-        self.setWindowTitle("Main Menu")
-        self.setGeometry(100, 100, 400, 300)
+        self.setWindowTitle("Stock Prediction & History")
+        self.setGeometry(100, 100, 800, 600)
+        self.center()
+
+
+        # Display username and profile details
+        username_label = QLabel(f"Welcome, {self.username}!", self)
+        if self.profile_data:
+            self.load_user_profile()
 
         # Search Bar
         self.search_bar = QLineEdit(self)
@@ -204,6 +227,7 @@ class MainMenu(QWidget):
         # Range Dropdown for Forecast (1 to 10)
         self.range_combobox = QComboBox(self)
         self.range_combobox.addItems([str(i) for i in range(1, 11)])  # Range between 1 and 10
+        self.range_combobox.currentIndexChanged.connect(self.update_forecast)
 
         # Forecast Button
         self.forecast_button = QPushButton("Forecast", self)
@@ -213,6 +237,9 @@ class MainMenu(QWidget):
         self.history_button = QPushButton("Show History", self)
         self.history_button.clicked.connect(self.show_history)
 
+
+
+        
         # Layout
         layout = QVBoxLayout()
         layout.addWidget(QLabel(f"Token: {self.token}", self))
@@ -225,8 +252,11 @@ class MainMenu(QWidget):
         layout.addWidget(self.forecast_button)
         layout.addWidget(self.history_button)
 
-        self.setLayout(layout)
+      
 
+        self.setLayout(layout)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        
     def update_stock_list(self):
         # Get the search term and filter stock list
         search_term = self.search_bar.text().lower()
@@ -290,6 +320,7 @@ class MainMenu(QWidget):
             dates = data['dates']
             values = data['values']
 
+            
             if len(dates) > len(values):
                 dates = dates[:len(values)]
 
@@ -319,6 +350,7 @@ class MainMenu(QWidget):
             # Display the plot in the PyQt5 window
             if self.canvas:
                 self.canvas.deleteLater()
+                self.canvas = None
 
             self.canvas = FigureCanvas(fig)
             self.layout().addWidget(self.canvas)
@@ -362,7 +394,55 @@ class MainMenu(QWidget):
         self.canvas = FigureCanvas(fig)
         self.layout().addWidget(self.canvas)
         self.canvas.draw()
+
+    def center(self):
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
+
+    def update_forecast(self):
+        """Update the forecast when the range changes."""
+        self.get_forecast()  # Re-fetch forecast data
+
+    def fetch_user_profile(self):
+        url = "http://127.0.0.1:8090/profile"  # Adjust URL as necessary
+        headers = {'Authorization': f'Bearer {self.token}'}
+
+        try:
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                profile_data = response.json()
+                return profile_data
+            else:
+                QMessageBox.warning(self, "Error", f"Failed to get profile: {response.status_code}")
+                return None
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Request failed: {e}")
+            return None
+
+
+    def display_user_profile(self, user_data):
+        username = user_data.get('username', 'Unknown User')
+        profile_picture_url = user_data.get('profilePictureUrl', '')  # Adjust based on your API response
+
+    # Display username
+        username_label = QLabel(f"Username: {username}", self)
+
+        if profile_picture_url:
+            response = requests.get(profile_picture_url)
+            img = QImage()
+            img.loadFromData(response.content)
+            profile_picture_label = QLabel(self)
+            profile_picture_label.setPixmap(QPixmap.fromImage(img).scaled(100, 100))  # Resize as needed
+
+            layout.addWidget(profile_picture_label)  # Add to your existing layout
+        else:
+            profile_picture_label = QLabel("No profile picture available.", self)
     
+        layout.addWidget(username_label)
+
+        
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
