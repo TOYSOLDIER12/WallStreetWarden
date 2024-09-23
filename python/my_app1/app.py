@@ -11,9 +11,11 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from datetime import datetime
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit,
-    QPushButton, QFileDialog, QFormLayout, QMessageBox, QComboBox,QSizePolicy,QLayout,
+    QPushButton, QFileDialog, QFormLayout,QHBoxLayout, QMessageBox, QComboBox,QSizePolicy,QLayout,
     QDesktopWidget
 )
+from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtCore import Qt
 
 
 
@@ -76,6 +78,8 @@ class SignUpWindow(QWidget):
         files = {
             'user': ('user', user_data, 'application/json')  # Include user data as a part of files
     }
+        if self.profile_pic_path:
+            files['profilePicture'] = (self.profile_pic_path.split('/')[-1], open(self.profile_pic_path, 'rb'))
 
 
  
@@ -180,11 +184,8 @@ class MainMenu(QWidget):
     def __init__(self, token):
         super().__init__()
         self.token = token  # Save the token for authenticated requests
-        
-        self.profile_data = self.fetch_user_profile()  # Fetch profile data
-        self.username = self.profile_data.get('username', 'User') if self.profile_data else "User"
-
-        
+        self.profile_data = self.fetch_user_profile()   
+                
 
         # Load stock names and tickers from the text file
         self.stock_dict = {}
@@ -192,7 +193,19 @@ class MainMenu(QWidget):
         self.canvas = None
         self.setMinimumSize(800, 600)
 
+        self.layout = QVBoxLayout(self)  # Define layout here
+        self.setLayout(self.layout)  # Set the layout to the widget early
+
+        self.username = "User"  
         self.initUI()
+        
+
+        if self.profile_data:
+            self.username = self.profile_data.get('username', 'User')
+            self.display_user_profile(self.profile_data)
+        else:
+            self.username = "User"
+
 
     def load_stocks(self):
         # Load stock data from file
@@ -208,12 +221,22 @@ class MainMenu(QWidget):
         self.setWindowTitle("Stock Prediction & History")
         self.setGeometry(100, 100, 800, 600)
         self.center()
+        
+        # profile layout
+        self.profile_layout = QVBoxLayout()
 
+        
+        
+        # Profile section
+        self.profile_picture_label = QLabel(self)
+        self.profile_layout.addWidget(self.profile_picture_label, alignment=Qt.AlignLeft)  # Align left
 
-        # Display username and profile details
-        username_label = QLabel(f"Welcome, {self.username}!", self)
-        if self.profile_data:
-            self.load_user_profile()
+        self.username_label = QLabel(f"Username: {self.username}", self)
+        self.username_label.setAlignment(Qt.AlignLeft)
+        self.profile_layout.addWidget(self.username_label)  # Add username label
+
+        self.layout.addLayout(self.profile_layout)  # Add profile layout to main layout
+
 
         # Search Bar
         self.search_bar = QLineEdit(self)
@@ -237,26 +260,18 @@ class MainMenu(QWidget):
         self.history_button = QPushButton("Show History", self)
         self.history_button.clicked.connect(self.show_history)
 
+        # Add widgets to layout
+        self.layout.addWidget(QLabel("Search for a Stock:"))
+        self.layout.addWidget(self.search_bar)
+        self.layout.addWidget(QLabel("Select a Stock:"))
+        self.layout.addWidget(self.stock_combobox)
+        self.layout.addWidget(QLabel("Select Forecast Range (Days):"))
+        self.layout.addWidget(self.range_combobox)
+        self.layout.addWidget(self.forecast_button)
+        self.layout.addWidget(self.history_button)
 
-
-        
-        # Layout
-        layout = QVBoxLayout()
-        layout.addWidget(QLabel(f"Token: {self.token}", self))
-        layout.addWidget(QLabel("Search for a Stock:"))
-        layout.addWidget(self.search_bar)
-        layout.addWidget(QLabel("Select a Stock:"))
-        layout.addWidget(self.stock_combobox)
-        layout.addWidget(QLabel("Select Forecast Range (Days):"))
-        layout.addWidget(self.range_combobox)
-        layout.addWidget(self.forecast_button)
-        layout.addWidget(self.history_button)
-
-      
-
-        self.setLayout(layout)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        
+
     def update_stock_list(self):
         # Get the search term and filter stock list
         search_term = self.search_bar.text().lower()
@@ -353,7 +368,7 @@ class MainMenu(QWidget):
                 self.canvas = None
 
             self.canvas = FigureCanvas(fig)
-            self.layout().addWidget(self.canvas)
+            self.layout.addWidget(self.canvas)
             self.canvas.draw()
         else:
             QMessageBox.warning(self, "Error", "No data to display.")    
@@ -392,7 +407,7 @@ class MainMenu(QWidget):
             self.canvas.deleteLater()
 
         self.canvas = FigureCanvas(fig)
-        self.layout().addWidget(self.canvas)
+        self.layout.addWidget(self.canvas)
         self.canvas.draw()
 
     def center(self):
@@ -406,7 +421,7 @@ class MainMenu(QWidget):
         self.get_forecast()  # Re-fetch forecast data
 
     def fetch_user_profile(self):
-        url = "http://127.0.0.1:8090/profile"  # Adjust URL as necessary
+        url = "http://127.0.0.1:8090/user/profile"  # Adjust URL as necessary
         headers = {'Authorization': f'Bearer {self.token}'}
 
         try:
@@ -423,25 +438,38 @@ class MainMenu(QWidget):
 
 
     def display_user_profile(self, user_data):
-        username = user_data.get('username', 'Unknown User')
-        profile_picture_url = user_data.get('profilePictureUrl', '')  # Adjust based on your API response
+        profile_picture_url = user_data.get('profile', '')  # Adjust based on your API response
 
-    # Display username
-        username_label = QLabel(f"Username: {username}", self)
 
         if profile_picture_url:
-            response = requests.get(profile_picture_url)
-            img = QImage()
-            img.loadFromData(response.content)
-            profile_picture_label = QLabel(self)
-            profile_picture_label.setPixmap(QPixmap.fromImage(img).scaled(100, 100))  # Resize as needed
-
-            layout.addWidget(profile_picture_label)  # Add to your existing layout
+            profile_picture_url = f"http://127.0.0.1:8090{profile_picture_url}"
         else:
-            profile_picture_label = QLabel("No profile picture available.", self)
-    
-        layout.addWidget(username_label)
+            profile_picture_url = ""
 
+
+        if profile_picture_url:
+            try:
+                response = requests.get(profile_picture_url)
+                if response.status_code == 200:
+                    img = QImage()
+                    img.loadFromData(response.content)
+                
+
+                    if img.isNull():
+                        raise Exception("Image loading failed.")
+
+                    self.profile_picture_label.setPixmap(QPixmap.fromImage(img).scaled(100, 100))
+                else:
+                    QMessageBox.warning(self, "Error", f"Failed to load profile picture: {response.status_code}")
+                    
+            except Exception as e:
+                QMessageBox.warning(self, "Error", f"Failed to load profile picture: {e}")
+                profile_picture_label = QLabel("No profile picture available.", self)
+                self.profile_picture_label.setText("No profile picture available.")
+
+
+        else:
+             self.profile_picture_label.setText("No profile picture available.")    
         
 if __name__ == "__main__":
     app = QApplication(sys.argv)
