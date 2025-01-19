@@ -2,7 +2,9 @@ package ma.xproce.getrich.service;
 
 import ma.xproce.getrich.dao.entities.Member;
 import ma.xproce.getrich.dao.repositories.MemberRepository;
+import ma.xproce.getrich.service.dto.MemberDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -11,6 +13,9 @@ import java.util.Optional;
 @Service
 
 public class MemberService implements MemberManager {
+
+    @Value("${upload-dir}")
+    private String uploadDir;
     @Autowired
     MemberRepository memberRepository;
     @Override
@@ -87,6 +92,15 @@ public class MemberService implements MemberManager {
 
         Optional<Member> memberOptional = memberRepository.findByUsername(username);
         return memberOptional.orElse(null);
+    }
+    @Override
+    public String getProfilePictureUrl(MemberDto memberDto) {
+
+
+        if (memberDto.getProfile() == null){
+            return "https://avatars.akamai.steamstatic.com/d326ba5664a62a6c25f867a826163e4f4b528e64_full.jpg";
+        }
+        return memberDto.getProfile();
     }
 
 }

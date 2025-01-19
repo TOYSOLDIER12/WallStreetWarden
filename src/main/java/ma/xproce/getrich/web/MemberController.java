@@ -1,17 +1,20 @@
 package ma.xproce.getrich.web;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import ma.xproce.getrich.config.AuthenticationResponse;
 import ma.xproce.getrich.config.MyUserPrincipal;
 import ma.xproce.getrich.dao.entities.Member;
+import ma.xproce.getrich.dao.entities.RevokedToken;
 import ma.xproce.getrich.service.AuthenticationService;
 import ma.xproce.getrich.service.JwtService;
 import ma.xproce.getrich.service.MemberManager;
+import ma.xproce.getrich.service.RevokedTokenManager;
 import ma.xproce.getrich.service.dto.LoginResponse;
 import ma.xproce.getrich.service.dto.MemberDto;
 import ma.xproce.getrich.service.dto.MemberDtoADD;
+import ma.xproce.getrich.service.mappers.MemberMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -23,11 +26,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.Principal;
 import java.util.UUID;
 
 
 @RestController
 public class MemberController {
+
+    private static final Logger logger = LoggerFactory.getLogger(MemberController.class);
 
 
     @Value("${upload-dir}")
@@ -40,12 +46,15 @@ public class MemberController {
 
     @Autowired
     MemberManager memberManager;
+    @Autowired
+    private MemberMapper memberMapper;
 
-
+    @Autowired
+    private RevokedTokenManager revokedTokenManager;
 
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> authenticate(@RequestBody MemberDto loginUserDto) {
+    public ResponseEntity<LoginResponse> authenticate(@RequestBody MemberDtoADD loginUserDto) {
 
 
         AuthenticationResponse authenticatedUser = authenticationService.authenticate(loginUserDto);
@@ -96,11 +105,42 @@ public class MemberController {
 
 
 
-    @GetMapping("/logout")
-    public String logout(HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        session.invalidate();
-        return "redirect:login";
+    @PostMapping("/sign-out")
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
+
+        logger.debug("Received logout request with token: {}", token);
+
+        try {
+        // Extract the token without "Bearer " prefix
+        String jwtToken = token.replace("Bearer ", "");
+
+        // Add the token to the revoked list
+        RevokedToken revokedToken = new RevokedToken();
+        revokedToken.setToken(jwtToken);
+        revokedTokenManager.addRevokedToken(revokedToken);
+
+        return ResponseEntity.ok("Logged out successfully.");
+    } catch (Exception e) {
+            // Log the error and return an appropriate response
+            logger.error("Error revoking token: {}", e.getMessage());
+            return ResponseEntity.status(500).body("Error logging out.");
+        }
+
     }
+
+    @GetMapping("/user/profile")
+    public ResponseEntity<MemberDto> getUserProfile(Principal principal) {
+
+        String username = principal.getName();
+
+
+
+        Member member = memberManager.findByUsername(username);
+        MemberDto memberDto = memberMapper.MemberToMemberDTO(member);
+
+
+        return ResponseEntity.ok(memberDto);
+    }
+
 
 }

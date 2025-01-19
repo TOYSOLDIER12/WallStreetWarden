@@ -6,6 +6,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import ma.xproce.getrich.config.MyUserPrincipal;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,13 @@ public class JwtService {
 
     @Value("${security.jwt.expiration-time}")
     private long jwtExpiration;
+
+    @Autowired
+    RevokedTokenManager revokedTokenManager;
+
+    public boolean isTokenRevoked(String token) {
+        return revokedTokenManager.isRevoked(token);
+    }
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -62,7 +70,7 @@ public class JwtService {
 
     public boolean isTokenValid(String token, MyUserPrincipal userDetails) {
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token) && !isTokenRevoked(token);
     }
 
     private boolean isTokenExpired(String token) {

@@ -49,6 +49,7 @@ public class ArimaController {
         }
 
             String forecast = armaManager.getForecast(stock, steps);
+            System.out.println(forecast);
             Prediction prediction =  predictionManager.getForecast(forecast, s);
 
             Map<String, Object> response = new HashMap<>();

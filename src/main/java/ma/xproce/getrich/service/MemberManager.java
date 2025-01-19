@@ -1,6 +1,7 @@
 package ma.xproce.getrich.service;
 
 import ma.xproce.getrich.dao.entities.Member;
+import ma.xproce.getrich.service.dto.MemberDto;
 
 import java.util.Collection;
 
@@ -12,5 +13,6 @@ public interface MemberManager {
     public Collection<Member> getAllMembers();
     public boolean checkLogin(String username, String password);
     public Member findByUsername(String username);
+    public String getProfilePictureUrl(MemberDto memberDto);
 
 }

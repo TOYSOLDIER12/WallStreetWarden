@@ -4,7 +4,6 @@ import ma.xproce.getrich.config.AuthenticationResponse;
 import ma.xproce.getrich.config.MyUserDetailsService;
 import ma.xproce.getrich.config.MyUserPrincipal;
 import ma.xproce.getrich.dao.entities.Member;
-import ma.xproce.getrich.service.dto.MemberDto;
 import ma.xproce.getrich.service.dto.MemberDtoADD;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,11 +34,12 @@ public class AuthenticationService {
                 user.setUsername(input.getUsername());
                 user.setPassword(passwordEncoder.encode(input.getPassword()));
                 user.setRole("user");
+                user.setProfile(input.getProfile());
 
         return userRepository.addMember(user);
     }
 
-    public AuthenticationResponse authenticate(MemberDto input) {
+    public AuthenticationResponse authenticate(MemberDtoADD input) {
         try {
 
 

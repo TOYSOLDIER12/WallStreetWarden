@@ -36,4 +36,9 @@ public class arimaService implements ArimaManager {
             return "Error: " + e.getMessage();
         }
     }
+    public ProcessBuilder getProcessBuilder(String stock, String steps) {
+        return new ProcessBuilder("/bin/bash", "-c", "source python/venv/bin/activate && python3 python/arima.py " + stock + " " + steps);
+    }
+
+
 }

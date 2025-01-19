@@ -11,5 +11,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class MemberDto {
     private String username;
-    private String password;
+    private String profile;
 }
