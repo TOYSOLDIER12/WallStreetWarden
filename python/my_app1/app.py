@@ -11,11 +11,12 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from datetime import datetime
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit,
-    QPushButton, QFileDialog, QFormLayout,QHBoxLayout, QMessageBox, QComboBox,QSizePolicy,QLayout,
-    QDesktopWidget
+    QPushButton, QFileDialog, QFormLayout,QHBoxLayout, QMainWindow, QMessageBox, QComboBox,QSizePolicy,QLayout,
+    QDesktopWidget, QStatusBar
 )
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import Qt
+import logging
 
 
 
@@ -29,27 +30,34 @@ class SignUpWindow(QWidget):
     def init_ui(self):
         self.setWindowTitle("Sign Up")
         self.setGeometry(100, 100, 300, 200)
+        self.setStyleSheet("background-color: #2e2e2e; color: #ffffff;")  # Set background and text color
 
         layout = QFormLayout()
+        layout.setSpacing(10)  # Set spacing between rows
 
         self.username_input = QLineEdit()
         self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.Password)
         self.profile_pic_path = ""
 
+        # Style for input fields
+        self.username_input.setStyleSheet("padding: 10px; border-radius: 5px; background-color: #444; color: white;")
+        self.password_input.setStyleSheet("padding: 10px; border-radius: 5px; background-color: #444; color: white;")
+
         layout.addRow(QLabel("Username:"), self.username_input)
         layout.addRow(QLabel("Password:"), self.password_input)
 
         self.upload_button = QPushButton("Upload Profile Picture")
+        self.upload_button.setStyleSheet("padding: 10px; background-color: #0078d7; color: white; border-radius: 5px;")  # Button styling
         self.upload_button.clicked.connect(self.upload_picture)
         layout.addRow(self.upload_button, QLabel(self.profile_pic_path))
 
         self.signup_button = QPushButton("Sign Up")
+        self.signup_button.setStyleSheet("padding: 10px; background-color: #0078d7; color: white; border-radius: 5px;")  # Button styling
         self.signup_button.clicked.connect(self.signup)
         layout.addRow(self.signup_button)
 
         self.setLayout(layout)
-
     def upload_picture(self):
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(self, "Select Profile Picture", "", "Images (*.png *.jpg *.jpeg);;All Files (*)", options=options)
@@ -113,26 +121,41 @@ class LoginWindow(QWidget):
     def init_ui(self):
         self.setWindowTitle("Login")
         self.setGeometry(100, 100, 300, 200)
+        self.setStyleSheet("background-color: #2e2e2e; color: #ffffff;")  # Set background and text color
 
         layout = QFormLayout()
+        layout.setSpacing(10)  # Set spacing between rows
 
         self.username_input = QLineEdit()
         self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.Password)
 
+        # Style for input fields
+        self.username_input.setStyleSheet("padding: 10px; border-radius: 5px; background-color: #444; color: white;")
+        self.password_input.setStyleSheet("padding: 10px; border-radius: 5px; background-color: #444; color: white;")
+
         layout.addRow(QLabel("Username:"), self.username_input)
         layout.addRow(QLabel("Password:"), self.password_input)
 
+        # Login Button
         self.login_button = QPushButton("Login")
+        self.login_button.setStyleSheet("padding: 10px; background-color: #0078d7; color: white; border-radius: 5px;")
         self.login_button.clicked.connect(self.login)
 
         layout.addRow(self.login_button)
 
+        # Sign Up Button
         self.signup_button = QPushButton("Sign Up")
+        self.signup_button.setStyleSheet("padding: 10px; background-color: #0078d7; color: white; border-radius: 5px;")
         self.signup_button.clicked.connect(self.open_signup_window)
+
         layout.addRow(self.signup_button)
 
         self.setLayout(layout)
+
+
+
+
 
     def login(self):
         username = self.username_input.text()
@@ -180,12 +203,11 @@ class LoginWindow(QWidget):
     
 
 
-class MainMenu(QWidget):
+class MainMenu(QMainWindow):
     def __init__(self, token):
         super().__init__()
-        self.token = token  # Save the token for authenticated requests
+        self.token = token # Save the token for authenticated requests
         self.profile_data = self.fetch_user_profile()   
-                
 
         # Load stock names and tickers from the text file
         self.stock_dict = {}
@@ -193,15 +215,12 @@ class MainMenu(QWidget):
         self.canvas = None
         self.setMinimumSize(800, 600)
 
-        self.layout = QVBoxLayout(self)  # Define layout here
-        self.setLayout(self.layout)  # Set the layout to the widget early
-
-        self.username = "User"  
+        self.username = self.profile_data.get('username', 'User') if self.profile_data else 'User'
+        
         self.initUI()
         
 
         if self.profile_data:
-            self.username = self.profile_data.get('username', 'User')
             self.display_user_profile(self.profile_data)
         else:
             self.username = "User"
@@ -220,45 +239,72 @@ class MainMenu(QWidget):
     def initUI(self):
         self.setWindowTitle("Stock Prediction & History")
         self.setGeometry(100, 100, 800, 600)
+        self.setStyleSheet("background-color: #2e2e2e; color: #ffffff;")
         self.center()
+
+        # Create main layout
+        central_widget = QWidget(self)
+        self.setCentralWidget(central_widget)
+        self.layout = QVBoxLayout(central_widget)
+
+
+        top_layout = QHBoxLayout()
+
+
+            # Sign Out Button
+        self.sign_out_button = QPushButton("Sign Out", self)
+        self.sign_out_button.setStyleSheet("padding: 10px; background-color: #d70000; color: white; border-radius: 5px;")
+        self.sign_out_button.clicked.connect(self.sign_out)  # Connect to sign out method
+       
+        self.sign_out_button.setFixedSize(80, 30)
+
+        top_layout.addWidget(self.sign_out_button, alignment=Qt.AlignRight)
         
-        # profile layout
+        self.layout.addLayout(top_layout)
+
+        # Profile section
         self.profile_layout = QVBoxLayout()
 
-        
-        
-        # Profile section
+        # Profile picture
         self.profile_picture_label = QLabel(self)
-        self.profile_layout.addWidget(self.profile_picture_label, alignment=Qt.AlignLeft)  # Align left
+        self.profile_picture_label.setPixmap(QPixmap("chungus.jpg").scaled(100, 100, Qt.KeepAspectRatio))
+        self.profile_picture_label.setAlignment(Qt.AlignCenter)  # Center align the profile picture
+        self.profile_layout.addWidget(self.profile_picture_label)
 
+        # Username label below the profile picture
         self.username_label = QLabel(f"Username: {self.username}", self)
-        self.username_label.setAlignment(Qt.AlignLeft)
+        self.username_label.setAlignment(Qt.AlignCenter)  # Center align the username
         self.profile_layout.addWidget(self.username_label)  # Add username label
 
-        self.layout.addLayout(self.profile_layout)  # Add profile layout to main layout
-
+        # Add profile layout to main layout
+        self.layout.addLayout(self.profile_layout)
 
         # Search Bar
         self.search_bar = QLineEdit(self)
         self.search_bar.setPlaceholderText("Search for a stock...")
+        self.search_bar.setStyleSheet("padding: 10px; border-radius: 5px;")
         self.search_bar.textChanged.connect(self.update_stock_list)
 
         # Stock Dropdown (ComboBox)
         self.stock_combobox = QComboBox(self)
         self.stock_combobox.addItems(self.company_names)  # Initially fill with all stocks
+        self.stock_combobox.setStyleSheet("padding: 10px; border-radius: 5px;")
 
         # Range Dropdown for Forecast (1 to 10)
         self.range_combobox = QComboBox(self)
         self.range_combobox.addItems([str(i) for i in range(1, 11)])  # Range between 1 and 10
-        self.range_combobox.currentIndexChanged.connect(self.update_forecast)
+        self.range_combobox.setStyleSheet("padding: 10px; border-radius: 5px;")
+       
 
         # Forecast Button
         self.forecast_button = QPushButton("Forecast", self)
         self.forecast_button.clicked.connect(self.get_forecast)
+        self.forecast_button.setStyleSheet("padding: 10px; background-color: #0078d7; color: white; border-radius: 5px;")
 
         # Show History Button
         self.history_button = QPushButton("Show History", self)
         self.history_button.clicked.connect(self.show_history)
+        self.history_button.setStyleSheet("padding: 10px; background-color: #0078d7; color: white; border-radius: 5px;")
 
         # Add widgets to layout
         self.layout.addWidget(QLabel("Search for a Stock:"))
@@ -270,7 +316,43 @@ class MainMenu(QWidget):
         self.layout.addWidget(self.forecast_button)
         self.layout.addWidget(self.history_button)
 
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        # Status Bar for feedback
+        self.statusBar = QStatusBar(self)
+        self.layout.addWidget(self.statusBar)
+
+       
+
+        # Center the layout alignment
+        self.layout.setAlignment(Qt.AlignTop)
+
+
+    def sign_out(self):
+        url = "http://127.0.0.1:8090/sign-out"
+        headers = {'Authorization': f'Bearer {self.token}'}
+
+        logging.debug(f"Sending POST request to {url} with headers: {headers}")
+        
+        try:
+            response = requests.post(url, headers=headers)
+            logging.debug(f"Response status code: {response.status_code}")
+            logging.debug(f"Response text: {response.text}")
+
+            if response.status_code == 200:
+                QMessageBox.information(self, "Success", "Logged out successfully!")
+                self.open_login_window()
+            else:
+                QMessageBox.warning(self, "Logout Error", f"Failed to log out: {response.text}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Logout request failed: {e}")
+
+    def open_login_window(self):
+        self.login_window = LoginWindow()
+        self.login_window.show()
+        self.close()  # Close signup window
+
+
+   
+
 
     def update_stock_list(self):
         # Get the search term and filter stock list
@@ -343,24 +425,32 @@ class MainMenu(QWidget):
 
             # Create a matplotlib figure
             fig, ax = plt.subplots(figsize=(10, 6))
-            ax.plot(dates, values, marker='o')
-            ax.set_xlabel("Date")
-            ax.grid(True)
-            ax.set_ylabel("Price")
-            ax.set_title(f"Stock Prediction for {self.stock_combobox.currentText()}")
+            plt.style.use('ggplot')
 
-            ax.xaxis.set_major_locator(mdates.MonthLocator())
+
+            ax.plot(dates, values, marker='o', color='coral', linewidth=2, label='Predicted Price')
+            ax.set_xlabel("Date", fontsize=12, fontweight='bold', color='darkblue')
+            ax.set_ylabel("Price", fontsize=12, fontweight='bold', color='darkblue')
+            ax.set_title(f"Stock Prediction for {self.stock_combobox.currentText()}", fontsize=16, fontweight='bold', color='navy')
+            ax.grid(True, linestyle='--', alpha=0.7)
+
+
+            ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
             ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
-
-            plt.xticks(rotation=45, ha='right')
+            plt.xticks(rotation=45, ha='right', fontsize=10)
+            
 
             for i, date in enumerate(dates):
-                ax.annotate(date.strftime('%Y-%m-%d'),
-                            (date, values[i]),
-                            textcoords="offset points",
-                            xytext=(0, 10),
-                            ha='center',
-                            fontsize=8)
+                ax.annotate(f'{values[i]:.2f}',  # Show price value
+                        (date, values[i]),
+                        textcoords="offset points",
+                        xytext=(0, 10),
+                        ha='center',
+                        fontsize=8, color='black', fontweight='bold')
+
+
+            ax.legend(loc='upper left', fontsize=10)
+
 
             # Display the plot in the PyQt5 window
             if self.canvas:
@@ -380,7 +470,7 @@ class MainMenu(QWidget):
 
         # Make sure to adjust the column names based on your CSV
             dates = pd.to_datetime(df['Date'])  # Adjust this if your date column has a different name
-            values = df['Close']  # Adjust for the actual value column
+            values = df['close']  # Adjust for the actual value column
 
             self.plot_history(dates, values)
         except Exception as e:
@@ -388,19 +478,33 @@ class MainMenu(QWidget):
 
 
     def plot_history(self, dates, values):
+
+
         # Create a matplotlib figure
         fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(dates, values, marker='o')
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Price")
-        ax.set_title(f"Stock History for {self.stock_combobox.currentText()}")
-        ax.grid(True)
+
+        plt.style.use('ggplot')
+
+        ax.plot(dates, values, marker='o', color='royalblue', linewidth=2, label='Historical Price')
+        ax.set_xlabel("Date", fontsize=12, fontweight='bold', color='darkblue')
+        ax.set_ylabel("Price", fontsize=12, fontweight='bold', color='darkblue')
+        ax.set_title(f"Stock History for {self.stock_combobox.currentText()}", fontsize=16, fontweight='bold', color='navy')
+        ax.grid(True, linestyle='--', alpha=0.7)
 
     # Format the x-axis
         ax.xaxis.set_major_locator(mdates.MonthLocator())
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
+        plt.xticks(rotation=45, ha='right', fontsize=10)
+        for i, date in enumerate(dates):
+            if i % 10 == 0:
+                ax.annotate(f'{values[i]:.2f}',  # Show price value
+                        (date, values[i]),
+                        textcoords="offset points",
+                        xytext=(0, 10),
+                        ha='center',
+                        fontsize=8, color='black', fontweight='bold')
 
-        plt.xticks(rotation=45, ha='right')
+        ax.legend(loc='upper left', fontsize=10)
 
     # Display the plot in the PyQt5 window
         if self.canvas:
@@ -440,13 +544,12 @@ class MainMenu(QWidget):
     def display_user_profile(self, user_data):
         profile_picture_url = user_data.get('profile', '')  # Adjust based on your API response
 
-
+        
+        
         if profile_picture_url:
             profile_picture_url = f"http://127.0.0.1:8090{profile_picture_url}"
-        else:
-            profile_picture_url = ""
-
-
+       
+        
         if profile_picture_url:
             try:
                 response = requests.get(profile_picture_url)
@@ -461,15 +564,18 @@ class MainMenu(QWidget):
                     self.profile_picture_label.setPixmap(QPixmap.fromImage(img).scaled(100, 100))
                 else:
                     QMessageBox.warning(self, "Error", f"Failed to load profile picture: {response.status_code}")
+                    self.set_default_profile_picture()
                     
             except Exception as e:
                 QMessageBox.warning(self, "Error", f"Failed to load profile picture: {e}")
-                profile_picture_label = QLabel("No profile picture available.", self)
-                self.profile_picture_label.setText("No profile picture available.")
+                self.set_default_profile_picture() 
 
 
         else:
-             self.profile_picture_label.setText("No profile picture available.")    
+            self.set_default_profile_picture()
+    
+    def set_default_profile_picture(self):
+        self.profile_picture_label.setPixmap(QPixmap("chungus.jpg").scaled(100, 100))
         
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -1,5 +1,6 @@
 import yfinance as yf
 import os
+import pandas as pd
 import sys
 
 def get_stock_symbol(name):
@@ -30,7 +31,12 @@ def get_csv(name):
         stock_data = yf.download(symbol, period="1y", interval="1d")
         
         # Save it to a CSV file
-        stock_data.to_csv(csv_path)
+        stock_data.reset_index(inplace=True)
+        if isinstance(stock_data.columns, pd.MultiIndex):
+            stock_data.columns = stock_data.columns.get_level_values(0)
+
+        stock_data.columns = ['Date'] + [col.replace(' ', '_').lower() for col in stock_data.columns[1:]]
+        stock_data.to_csv(csv_path, index=False)
 
         # Check if the file was actually saved
         if os.path.exists(csv_path):

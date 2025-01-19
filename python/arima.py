@@ -12,7 +12,7 @@ import json
 import warnings
 from statsmodels.tsa.stattools import adfuller
 import itertools
-from stock_utils import get_csv
+from stock_utils import get_csv 
 
 warnings.filterwarnings("ignore")
 
@@ -32,7 +32,7 @@ def date_to_unix_timestamp(date):
     return int(time.mktime(date.timetuple()))
 
 def get_csv_file(name):
-  get_csv(name)
+    get_csv(name)
 
 
 def test_stationarity(timeseries):
@@ -49,13 +49,25 @@ def arima(name, step):
 
         # Proceed with ARIMA processing if the CSV file exists
         df = pd.read_csv(csv_file)
-        df['Date'] = pd.to_datetime(df['Date'])
-        df.set_index('Date', inplace=True)
+        
+
+
+        df.columns = df.columns.str.lower()
+        if 'date' not in df.columns:
+            raise ValueError("The 'Date' column is missing in the CSV file.")
+
+        df['date'] = pd.to_datetime(df['date'], errors='coerce')
+        df.dropna(subset=['date'], inplace=True)  # Remove rows with invalid dates
+
+        df.set_index('date', inplace=True)
         df = df.asfreq('D')
 
-        df['Close'] = df['Close'].ffill()
+        if 'close' not in df.columns:
+            raise ValueError("The 'Close' column is missing in the CSV file.")
+        data = df['close'].dropna()
 
-        model = ARIMA(df['Close'], order=(4, 1, 0))
+
+        model = ARIMA(df['close'], order=(4, 1, 0))
         model_fit = model.fit()
 
         # Forecast the next 'step' days
